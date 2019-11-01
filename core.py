@@ -20,6 +20,10 @@ class Core(object):
         self._state = collections.OrderedDict((reg, register.Register()) for reg in self.__REGISTERS__)
 
     @property
+    def mmu(self):
+        return self._mmu
+
+    @property
     def state(self):
         return self._state
 

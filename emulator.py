@@ -1,20 +1,28 @@
 import argparse
 import dosarch
+import bfarch
 import memory
 
-
-CODE = bytearray(''.join(['\x01\x00\x00\x00',
-                 '\x01\x01\x00\x00']))
+# Fibonacci sequence - BrainF*ck
+CODE = bytearray(
+    "+++++++++++>+>>>>++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++<<<<<<[>[>>>>>>+>+<<"
+    "<<<<<-]>>>>>>>[<<<<<<<+>>>>>>>-]<[>++++++++++[-<-[>>+>+<<<-]>>>[<<<+>>>-]+<[>[-]<[-]]>[<<[>>>+<<<-]>>[-]]<<]>>>[>>"
+    "+>+<<<-]>>>[<<<+>>>-]+<[>[-]<[-]]>[<<+>>[-]]<<<<<<<]>>>>>[++++++++++++++++++++++++++++++++++++++++++++++++.[-]]+++"
+    "+++++++<[->-<]>++++++++++++++++++++++++++++++++++++++++++++++++.[-]<<<<<<<<<<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<-[>>."
+    ">.<<<[-]]<<[>>+>+<<<-]>>>[<<<+>>>-]<<[<+>-]>[<+>-]<<<-]$")
 
 
 class ExampleProcessor(object):
     def __init__(self):
         # Init memory devices
         self._mmu = memory.MMU()
-        self._mmu.add_device(memory.RAM(0, 0x1000))
+
+        # Harvard architecture - CODE/DATA separation
+        self._mmu.add_device(memory.CodeMemory(0, 0x800, data=CODE))
+        self._mmu.add_device(memory.DataMemory(0x800, 0x1000, zero=True))
 
         # Init Core
-        self._core = dosarch.DosCore(self._mmu)
+        self._core = bfarch.BFCore(self._mmu)
 
     @property
     def mmu(self):
@@ -30,10 +38,9 @@ def main():
     args = parser.parse_args()
 
     processor = ExampleProcessor()
-    processor.mmu.load_data(0, CODE)
-    processor.core.step()
-    processor.core.step()
-    print processor.core.state
+
+    while True:
+        processor.core.step()
 
 
 if __name__ == '__main__':

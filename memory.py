@@ -153,7 +153,59 @@ class RAM(MemoryDevice):
         size = request['width'] / 8
 
         if request['direction'] == 'load':
-            serialized_data = self._data[offset:offset+size]
+            serialized_data = self._data[offset:offset + size]
+            return _deserialize_long(serialized_data)
+
+        elif request['direction'] == 'store':
+            serialized_data = _serialize_long(request['data'], size)
+            self._data[offset:offset + size] = serialized_data
+            return
+
+        raise NotImplementedError
+
+
+class CodeMemory(MemoryDevice):
+    def __init__(self, base, size, data=None):
+        super(CodeMemory, self).__init__(base, size)
+        self._data = bytearray(size)
+        if data is not None:
+            self._data = bytearray(data) + bytearray(size - len(data))
+
+    def _address_to_offset(self, address):
+        return address - self.base
+
+    def access(self, request):
+        offset = self._address_to_offset(request['address'])
+        size = request['width'] / 8
+
+        if request['direction'] == 'load':
+            serialized_data = self._data[offset:offset + size]
+            return _deserialize_long(serialized_data)
+
+        elif request['direction'] == 'store':
+            raise MemoryError
+
+        raise NotImplementedError
+
+
+class DataMemory(MemoryDevice):
+    def __init__(self, base, size, zero=False):
+        super(DataMemory, self).__init__(base, size)
+        if zero:
+            self._data = bytearray("\x00" * size)
+        else:
+            self._data = bytearray(size)
+
+
+    def _address_to_offset(self, address):
+        return address - self.base
+
+    def access(self, request):
+        offset = self._address_to_offset(request['address'])
+        size = request['width'] / 8
+
+        if request['direction'] == 'load':
+            serialized_data = self._data[offset:offset + size]
             return _deserialize_long(serialized_data)
 
         elif request['direction'] == 'store':
