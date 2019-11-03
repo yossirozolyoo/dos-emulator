@@ -1,5 +1,5 @@
+import display
 import argparse
-import dosarch
 import bfarch
 import memory
 
@@ -21,6 +21,12 @@ class ExampleProcessor(object):
         self._mmu.add_device(memory.CodeMemory(0, 0x800, data=CODE))
         self._mmu.add_device(memory.DataMemory(0x800, 0x1000, zero=True))
 
+        # Display
+        display_device = display.DisplayDevice(0x10000, 640, 480)
+        self._mmu.add_device(display_device)
+
+        self._updated_devices = [display_device]
+
         # Init Core
         self._core = bfarch.BFCore(self._mmu)
 
@@ -32,6 +38,10 @@ class ExampleProcessor(object):
     def core(self):
         return self._core
 
+    def update_devices(self):
+        for device in self._updated_devices:
+            device.update()
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -39,8 +49,10 @@ def main():
 
     processor = ExampleProcessor()
 
+    import time
     while True:
         processor.core.step()
+        processor.update_devices()
 
 
 if __name__ == '__main__':

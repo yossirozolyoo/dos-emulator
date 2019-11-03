@@ -107,6 +107,8 @@ class MemoryDevice(object):
     def store32(self, address, data):
         return self.access(store32(address, data))
 
+    def update(self):
+        pass
 
 class MMU(MemoryDevice):
     def __init__(self, devices=[]):
@@ -147,6 +149,10 @@ class RAM(MemoryDevice):
 
     def _address_to_offset(self, address):
         return address - self.base
+
+    @property
+    def data(self):
+        return bytearray(self._data)
 
     def access(self, request):
         offset = self._address_to_offset(request['address'])
@@ -195,7 +201,6 @@ class DataMemory(MemoryDevice):
             self._data = bytearray("\x00" * size)
         else:
             self._data = bytearray(size)
-
 
     def _address_to_offset(self, address):
         return address - self.base
